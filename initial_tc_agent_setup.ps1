@@ -1,4 +1,4 @@
-#Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/DGldy/c3b804c6800ff5e05fbb7eb00549528e/raw/initial_tc_agent_setup.ps1'))
+#Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1'))
 
 function Log([string]$message) {    
     Write-Host $message
@@ -26,7 +26,7 @@ function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) 
     $setupScriptName = 'setup_tc_agent.ps1'
     $setupScriptPath = Join-Path $Env:Temp -ChildPath $setupScriptName
     
-    $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://gist.githubusercontent.com/DGldy/952f497798bace926ec742ac41a6118c/raw/$setupScriptName")
+    $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")
     
     New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $setupScriptContent
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath -UserName $userName -Password $passwordInClearText"
