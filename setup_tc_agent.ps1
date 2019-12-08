@@ -41,7 +41,7 @@ choco install -y jdk8
 $networkInstallersPath = "\\qsnas1\Storage\devops\TC_Agent_Automation"
 
 Log 'Installing ASPNet MVC 4'
-Start-Process -FilePath "$networkInstallersPath\MVC4\AspNetMVC4Setup.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+Start-Process -FilePath "$networkInstallersPath\AspNetMVC4Setup.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
 
 Log 'Installing Visual Studio 2013 build tools'
 Start-Process -FilePath "$networkInstallersPath\BuildTools_Full_2013.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
