@@ -38,21 +38,29 @@ choco install -y vcpython27
 choco install -y python3
 choco install -y jdk8
 
+$networkInstallersPath = "\\qsnas1\Storage\devops\TC_Agent_Automation"
+
+Log 'Installing ASPNet MVC 4'
+Start-Process -FilePath "$networkInstallersPath\MVC4\AspNetMVC4Setup.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+
 Log 'Installing Visual Studio 2013 build tools'
-Start-Process -FilePath "\\qsnas1\Storage\VisualStudio\build-tools\BuildTools_Full_2013.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+Start-Process -FilePath "$networkInstallersPath\BuildTools_Full_2013.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
 
 Log 'Installing Visual Studio 2015 build tools'
-Start-Process -FilePath "\\qsnas1\Storage\VisualStudio\build-tools\BuildTools_Full_2015.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+Start-Process -FilePath "$networkInstallersPath\BuildTools_Full_2015.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
 
 Log 'Installing Visual Studio 2017'
-$vs2017InstallerPath = '\\qsnas1\Storage\VisualStudio\2017\vs_Enterprise.exe'
+$vs2017InstallerPath = '$networkInstallersPath\vs_Enterprise.exe'
 Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '--update', '--passive', '--wait', '--norestart'
-Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '--config', '"\\qsnas1\Storage\VisualStudio\2017\.vsconfig"', '--passive', '--wait', '--norestart'
+Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '--config', "`"$networkInstallersPath\.vsconfig`"", '--passive', '--wait', '--norestart', '--nocache'
+
+Log 'Installing Wix 3.5'
+Start-Process -FilePath "msiexec.exe" -Wait -NoNewWindow -ArgumentList "/i","`"$networkInstallersPath\Wix35.msi`"","/passive","/norestart"
 
 Log 'Setting evironment variables'
-$currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+# $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
 [System.Environment]::SetEnvironmentVariable('UseCommandLineService', 'True', [System.EnvironmentVariableTarget]::Machine)
-[System.Environment]::SetEnvironmentVariable('Path', $currentPath + 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer' , [System.EnvironmentVariableTarget]::Machine)
+# [System.Environment]::SetEnvironmentVariable('Path', $currentPath + 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer' , [System.EnvironmentVariableTarget]::Machine)
 
 Log "Downloading TeamCity build agent"
 $tcAgentArchivePath = Join-Path $env:Temp -ChildPath 'buildAgent.zip'
@@ -69,11 +77,12 @@ Expand-Archive $qsbuildArchivePath -DestinationPath $qsAgentSpyFolder
 
 $javaHomePath = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
 $jrePath = "$javaHomePath\jre"
+$serverName = [System.Environment]::MachineName
 
 $agentConfiguration = 
 @"
 serverUrl=http\://tc
-name=$serverDomainName
+name=$serverName
 workDir=C\:\\BuildAgent\\work
 tempDir=C\:\\BuildAgent\\temp
 systemDir=C\:\\BuildAgent\\system

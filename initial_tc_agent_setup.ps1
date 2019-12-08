@@ -61,7 +61,7 @@ Install-WindowsFeature -Name "FS-SMB1"
 $serverName = Read-Host 'Server Name'
 
 Log 'Renaming Computer'
-Rename-Computer -ComputerName $serverName
+Rename-Computer -NewName $serverName
 
 Log 'Joining Domain'
 Add-Computer -DomainName "$domain.local" -NewName $serverName -Credential $userCredentials
