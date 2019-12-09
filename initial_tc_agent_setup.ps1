@@ -48,6 +48,7 @@ $domain = 'qualisystems'
 $domainUserName = 'buser'
 $fullDomainUserName = "$domain\$domainUserName"
 $userCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $domainUserName password"
+$serverName = Read-Host 'Server Name'
 
 Log 'Setting the time zone'
 Set-TimeZone -Id "Israel Standard Time"
@@ -58,16 +59,17 @@ Set-NetFirewallProfile -All -Enabled False -Verbose
 Log 'Enabling samba version 1.0'
 Install-WindowsFeature -Name "FS-SMB1"
 
-$serverName = Read-Host 'Server Name'
-
-Log 'Joining Domain'
-Add-Computer -DomainName "$domain.local" -ComputerName 'localhost' -NewName $serverName -Credential $userCredentials
-
 Log "Adding $domainUserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
 
 Log "Disabling server manager at startup"
 Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
+
+Log 'Renaming Computer'
+Rename-Computer -NewName $serverName
+
+Log 'Joining Domain'
+Add-Computer -DomainName "$domain.local" -Credential $userCredentials
 
 Log "Setting auto logon for $domainUserName"
 Set-AutoLogon $domain $domainUserName $userCredentials.Password
