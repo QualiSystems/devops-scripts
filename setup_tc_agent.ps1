@@ -57,10 +57,26 @@ Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '-
 Log 'Installing Wix 3.5'
 Start-Process -FilePath "msiexec.exe" -Wait -NoNewWindow -ArgumentList "/i","`"$networkInstallersPath\Wix35.msi`"","/passive","/norestart"
 
+Log 'Installing TFS power tools 2013'
+Start-Process -FilePath "msiexec.exe" -Wait -NoNewWindow -ArgumentList "/i","`"$networkInstallersPath\Team Foundation Server 2012 Power Tools.msi`"","/passive","/norestart"
+
+Log 'Installing VMware SDK'
+Start-Process -FilePath "$networkInstallersPath\VMware-vix-1.11.2-591240.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn',
+
+Log 'Installing VMware PowerCLI'
+Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn',
+
 Log 'Setting evironment variables'
 # $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
 [System.Environment]::SetEnvironmentVariable('UseCommandLineService', 'True', [System.EnvironmentVariableTarget]::Machine)
 # [System.Environment]::SetEnvironmentVariable('Path', $currentPath + 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer' , [System.EnvironmentVariableTarget]::Machine)
+
+Log 'Activating Windows'
+$computer = $Env:ComputerName
+$key = Read-Host -Prompt "Please Enter Windows Activation Key"
+$service = get-wmiObject -query "select * from SoftwareLicensingService" -computername $computer
+$service.InstallProductKey($key)
+$service.RefreshLicenseStatus()
 
 Log "Downloading TeamCity build agent"
 $tcAgentArchivePath = Join-Path $env:Temp -ChildPath 'buildAgent.zip'
