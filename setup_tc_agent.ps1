@@ -50,7 +50,7 @@ Log 'Installing Visual Studio 2015 build tools'
 Start-Process -FilePath "$networkInstallersPath\BuildTools_Full_2015.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
 
 Log 'Installing Visual Studio 2017'
-$vs2017InstallerPath = '$networkInstallersPath\vs_Enterprise.exe'
+$vs2017InstallerPath = "$networkInstallersPath\vs_Enterprise.exe"
 Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '--update', '--passive', '--wait', '--norestart'
 Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '--config', "`"$networkInstallersPath\.vsconfig`"", '--passive', '--wait', '--norestart', '--nocache'
 
@@ -61,10 +61,10 @@ Log 'Installing TFS power tools 2013'
 Start-Process -FilePath "msiexec.exe" -Wait -NoNewWindow -ArgumentList "/i","`"$networkInstallersPath\Team Foundation Server 2012 Power Tools.msi`"","/passive","/norestart"
 
 Log 'Installing VMware SDK'
-Start-Process -FilePath "$networkInstallersPath\VMware-vix-1.11.2-591240.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn',
+Start-Process -FilePath "$networkInstallersPath\VMware-vix-1.11.2-591240.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
 
 Log 'Installing VMware PowerCLI'
-Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn',
+Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
 
 Log 'Setting evironment variables'
 # $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")

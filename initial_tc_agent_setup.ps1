@@ -60,11 +60,8 @@ Install-WindowsFeature -Name "FS-SMB1"
 
 $serverName = Read-Host 'Server Name'
 
-Log 'Renaming Computer'
-Rename-Computer -NewName $serverName
-
 Log 'Joining Domain'
-Add-Computer -DomainName "$domain.local" -NewName $serverName -Credential $userCredentials
+Add-Computer -DomainName "$domain.local" -ComputerName 'localhost' -NewName $serverName -Credential $userCredentials
 
 Log "Adding $domainUserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
