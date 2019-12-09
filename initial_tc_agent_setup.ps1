@@ -59,9 +59,6 @@ Set-NetFirewallProfile -All -Enabled False -Verbose
 Log 'Enabling samba version 1.0'
 Install-WindowsFeature -Name "FS-SMB1"
 
-Log "Adding $domainUserName to administrators group"
-Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
-
 Log "Disabling server manager at startup"
 Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
 
@@ -70,6 +67,9 @@ Rename-Computer -NewName $serverName
 
 Log 'Joining Domain'
 Add-Computer -DomainName "$domain.local" -Credential $userCredentials
+
+Log "Adding $domainUserName to administrators group"
+Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
 
 Log "Setting auto logon for $domainUserName"
 Set-AutoLogon $domain $domainUserName $userCredentials.Password
