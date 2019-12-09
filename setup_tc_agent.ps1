@@ -75,7 +75,7 @@ Log 'Setting evironment variables'
 # [System.Environment]::SetEnvironmentVariable('Path', $currentPath + 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer' , [System.EnvironmentVariableTarget]::Machine)
 
 Log 'Activating Windows'
-$computer = $Env:ComputerName/
+$computer = $Env:ComputerName
 $key = Read-Host -Prompt "Please Enter Windows Activation Key"
 $service = get-wmiObject -query "select * from SoftwareLicensingService" -computername $computer
 $service.InstallProductKey($key)
