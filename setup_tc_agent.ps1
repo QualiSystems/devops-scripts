@@ -96,12 +96,11 @@ Expand-Archive $qsbuildArchivePath -DestinationPath $qsAgentSpyFolder
 
 $javaHomePath = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
 $jrePath = "$javaHomePath\jre"
-$serverName = [System.Environment]::MachineName
 
 $agentConfiguration = 
 @"
 serverUrl=http\://tc
-name=$serverName
+name=$computer
 workDir=C\:\\BuildAgent\\work
 tempDir=C\:\\BuildAgent\\temp
 systemDir=C\:\\BuildAgent\\system
