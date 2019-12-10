@@ -70,9 +70,9 @@ Log 'Installing VMware PowerCLI'
 Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
 
 Log 'Setting evironment variables'
-# $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+$currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
 [System.Environment]::SetEnvironmentVariable('UseCommandLineService', 'True', [System.EnvironmentVariableTarget]::Machine)
-# [System.Environment]::SetEnvironmentVariable('Path', $currentPath + 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer' , [System.EnvironmentVariableTarget]::Machine)
+[System.Environment]::SetEnvironmentVariable('Path', $currentPath + 'C:\Python38;C:\Python38\Scripts;' , [System.EnvironmentVariableTarget]::Machine)
 
 Log 'Activating Windows'
 $computer = $Env:ComputerName

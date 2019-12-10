@@ -62,11 +62,8 @@ Install-WindowsFeature -Name "FS-SMB1"
 Log "Disabling server manager at startup"
 Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
 
-Log 'Renaming Computer'
-Rename-Computer -NewName $serverName
-
 Log 'Joining Domain'
-Add-Computer -DomainName "$domain.local" -Credential $userCredentials
+Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -NewName $serverName -Credential $userCredentials
 
 Log "Adding $domainUserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
