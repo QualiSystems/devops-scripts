@@ -34,7 +34,7 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
     $setupScriptName = "TCAgentSetup_$guid.ps1"
     $setupScriptPath = Join-Path $Env:Temp -ChildPath $setupScriptName
     
-    New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $setupScriptContent
+    New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $scriptContent
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File '$setupScriptPath' $scriptArguments"
     Set-ItemProperty -Path $registryKey -Name $registryEntry -Value $command
 }
