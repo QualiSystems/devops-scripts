@@ -1,5 +1,11 @@
 #Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1'))
 
+param (
+    [string]$UserName = 'buser',
+    [string]$Password,
+    [string]$ServerName
+)
+
 function Log([string]$message) {    
     Write-Host $message
 }
@@ -19,25 +25,54 @@ function Set-AutoLogon([string]$domainName, [string]$userName, [SecureString]$pa
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultPassword" -Value $passwordInClearText
 }
 
-function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {
+function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments) {
     $registryKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
     $registryEntry = "SetupTCAgent"
-    $passwordInClearText = Convert-ToClearText $password
-    $setupScriptName = 'setup_tc_agent.ps1'
+    $setupScriptName = (New-Guid).ToString('n')
     $setupScriptPath = Join-Path $Env:Temp -ChildPath $setupScriptName
     
-    $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")
-    
     New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $setupScriptContent
-    $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath -UserName $userName -Password $passwordInClearText"
+    $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath $scriptArguments"
     Set-ItemProperty -Path $registryKey -Name $registryEntry -Value $command
 }
 
+function Restart {
+    Log "Restarting"
+    Restart-Computer -Force    
+}
+
+function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {    
+    $passwordInClearText = Convert-ToClearText $password
+    $setupScriptName = 'setup_tc_agent.ps1'    
+    $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")    
+    
+    Set-ScriptToRunOnBoot $setupScriptContent "-UserName $userName -Password $passwordInClearText"    
+}
+
+function Test-IsDomainJoined {
+    return (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain
+}
+
+function New-Credentials([string]$userName, [string]$password) {
+    $secureStringPwd = $password | ConvertTo-SecureString -AsPlainText -Force 
+    return New-Object System.Management.Automation.PSCredential -ArgumentList $userName, $secureStringPwd
+}
+
 $domain = 'qualisystems'
-$domainUserName = 'buser'
-$fullDomainUserName = "$domain\$domainUserName"
-$userCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $domainUserName password"
-$serverName = Read-Host 'Server Name'
+$fullDomainUserName = "$domain\$UserName"
+
+if ([string]::IsNullOrEmpty($Password)) {
+    $userCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
+    $firstRun = $true
+}
+else {
+    $userCredentials = New-Credentials -userName $UserName -password $Password
+    $firstRun = $false
+}
+
+if ([string]::IsNullOrEmpty($ServerName)) {
+    $ServerName = Read-Host 'Server Name'
+}
 
 Install-PackageProvider -Name NuGet -Force -Confirm:$False
 
@@ -62,15 +97,24 @@ Install-WindowsFeature -Name "FS-SMB1"
 Log "Disabling server manager at startup"
 Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
 
-Log 'Joining Domain'
-Add-Computer -ComputerName 'localhost' -NewName $serverName -DomainName "$domain.local" -DomainCredential $userCredentials -Force
+if ($firstRun) {
+    Write-Host 'Renaming computer'
+    Rename-Computer -NewName $ServerName
+    $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
+    $clearTextPassword = Convert-ToClearText $userCredentials.Password
+    Set-AutoLogon $domain $UserName $userCredentials.Password
+    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User $UserName -Password $clearTextPassword -ServerName $ServerName"    
+    Restart
+}
 
-Log "Adding $domainUserName to administrators group"
+Log 'Joining Domain'
+Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCredential $userCredentials -Force
+
+Log "Adding $UserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
 
-Log "Setting auto logon for $domainUserName"
-Set-AutoLogon $domain $domainUserName $userCredentials.Password
-Set-SetupScriptToRunOnBoot $domainUserName $userCredentials.Password
+Log "Setting auto logon for $UserName"
+Set-AutoLogon $domain $UserName $userCredentials.Password
+Set-SetupScriptToRunOnBoot $UserName $userCredentials.Password
 
-Log "Restarting"
-Restart-Computer -Force
+Restart
