@@ -2,8 +2,7 @@
 
 param (
     [string]$UserName = 'buser',
-    [string]$Password,
-    [string]$ServerName
+    [string]$Password
 )
 
 function Log([string]$message) {    
@@ -59,19 +58,16 @@ function New-Credentials([string]$userName, [string]$password) {
 
 $domain = 'qualisystems'
 $fullDomainUserName = "$domain\$UserName"
-$currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
 
 if ([string]::IsNullOrEmpty($Password)) {
+    $currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
     $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
+    $ServerName = Read-Host 'Server Name'
     $firstRun = $true
 }
 else {
     $domainUserCredentials = New-Credentials -userName $UserName -password $Password
     $firstRun = $false
-}
-
-if ([string]::IsNullOrEmpty($ServerName)) {
-    $ServerName = Read-Host 'Server Name'
 }
 
 Install-PackageProvider -Name NuGet -Force -Confirm:$False
