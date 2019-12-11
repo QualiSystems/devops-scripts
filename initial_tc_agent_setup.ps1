@@ -28,7 +28,8 @@ function Set-AutoLogon([string]$domainName, [string]$userName, [SecureString]$pa
 function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments) {
     $registryKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
     $registryEntry = "SetupTCAgent"
-    $setupScriptName = (New-Guid).ToString('n')
+    $guid = (New-Guid).ToString('n')
+    $setupScriptName = "TCAgentSetup_$guid.ps1"
     $setupScriptPath = Join-Path $Env:Temp -ChildPath $setupScriptName
     
     New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $setupScriptContent
