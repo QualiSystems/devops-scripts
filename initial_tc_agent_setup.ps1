@@ -33,7 +33,7 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
     $setupScriptPath = Join-Path $Env:Temp -ChildPath $setupScriptName
     
     New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $setupScriptContent
-    $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath $scriptArguments"
+    $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File '$setupScriptPath' $scriptArguments"
     Set-ItemProperty -Path $registryKey -Name $registryEntry -Value $command
 }
 
@@ -47,7 +47,7 @@ function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) 
     $setupScriptName = 'setup_tc_agent.ps1'    
     $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")    
 
-    Set-ScriptToRunOnBoot $setupScriptContent "-UserName $userName -Password $passwordInClearText"    
+    Set-ScriptToRunOnBoot $setupScriptContent "-UserName '$userName' -Password '$passwordInClearText'"
 }
 
 function New-Credentials([string]$userName, [string]$password) {
@@ -100,7 +100,7 @@ if ($firstRun) {
     $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
     $clearTextPassword = Convert-ToClearText $userCredentials.Password
     Set-AutoLogon $domain $UserName $userCredentials.Password
-    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User $UserName -Password $clearTextPassword -ServerName $ServerName"    
+    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$clearTextPassword' -ServerName '$ServerName'"
     Restart
 }
 
