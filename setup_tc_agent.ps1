@@ -76,9 +76,10 @@ $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
 
 Log 'Activating Windows'
 $computer = $Env:ComputerName
-$key = Read-Host -Prompt "Please Enter Windows Activation Key"
+$agentInfo = ConvertFrom-Json (Get-Content "\\qsnas1\Storage\devops\TC_Agent_Automation\setup_info.json")
+$activationKey = $agentInfo.ActivationKey
 $service = get-wmiObject -query "select * from SoftwareLicensingService" -computername $computer
-$service.InstallProductKey($key)
+$service.InstallProductKey($activationKey)
 $service.RefreshLicenseStatus()
 
 Log "Downloading TeamCity build agent"

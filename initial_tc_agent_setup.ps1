@@ -33,6 +33,12 @@ function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) 
     Set-ItemProperty -Path $registryKey -Name $registryEntry -Value $command
 }
 
+$domain = 'qualisystems'
+$domainUserName = 'buser'
+$fullDomainUserName = "$domain\$domainUserName"
+$userCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $domainUserName password"
+$serverName = Read-Host 'Server Name'
+
 Install-PackageProvider -Name NuGet -Force -Confirm:$False
 
 @('ComputerManagementDsc',
@@ -43,12 +49,6 @@ Install-PackageProvider -Name NuGet -Force -Confirm:$False
         Log "Installing $_"; Install-Module $_ -Force -Confirm:$False
     }
 }
-
-$domain = 'qualisystems'
-$domainUserName = 'buser'
-$fullDomainUserName = "$domain\$domainUserName"
-$userCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $domainUserName password"
-$serverName = Read-Host 'Server Name'
 
 Log 'Setting the time zone'
 Set-TimeZone -Id "Israel Standard Time"
