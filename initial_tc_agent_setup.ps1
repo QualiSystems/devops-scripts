@@ -45,12 +45,8 @@ function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) 
     $passwordInClearText = Convert-ToClearText $password
     $setupScriptName = 'setup_tc_agent.ps1'    
     $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")    
-    
-    Set-ScriptToRunOnBoot $setupScriptContent "-UserName $userName -Password $passwordInClearText"    
-}
 
-function Test-IsDomainJoined {
-    return (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain
+    Set-ScriptToRunOnBoot $setupScriptContent "-UserName $userName -Password $passwordInClearText"    
 }
 
 function New-Credentials([string]$userName, [string]$password) {
