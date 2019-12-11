@@ -63,7 +63,7 @@ Log "Disabling server manager at startup"
 Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
 
 Log 'Joining Domain'
-Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -NewName $serverName -Credential $userCredentials
+Add-Computer -ComputerName 'localhost' -NewName $serverName -DomainName "$domain.local" -DomainCredential $userCredentials
 
 Log "Adding $domainUserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
