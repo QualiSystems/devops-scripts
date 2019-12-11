@@ -15,14 +15,16 @@ function Convert-ToClearText([securestring]$secureString) {
     return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($passwordBSTR)    
 }
 
-function Set-AutoLogon([string]$domainName, [string]$userName, [SecureString]$password) {
+function Set-AutoLogon([string]$userName, [SecureString]$password, [string]$domainName) {
     $autoLogonRegistryKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
     $passwordInClearText = Convert-ToClearText $password
 
-    Set-ItemProperty -Path $autoLogonRegistryKey -Name "AutoAdminLogon" -Value "1"	
-    Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultDomainName" -Value $domainName	
+    Set-ItemProperty -Path $autoLogonRegistryKey -Name "AutoAdminLogon" -Value "1"
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultUserName" -Value $userName
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultPassword" -Value $passwordInClearText
+    if ([string]::IsNullOrEmpty($domainName)) {
+        Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultDomainName" -Value $domainName
+    }
 }
 
 function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments) {
@@ -57,13 +59,14 @@ function New-Credentials([string]$userName, [string]$password) {
 
 $domain = 'qualisystems'
 $fullDomainUserName = "$domain\$UserName"
+$currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
 
 if ([string]::IsNullOrEmpty($Password)) {
-    $userCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
+    $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
     $firstRun = $true
 }
 else {
-    $userCredentials = New-Credentials -userName $UserName -password $Password
+    $domainUserCredentials = New-Credentials -userName $UserName -password $Password
     $firstRun = $false
 }
 
@@ -98,20 +101,20 @@ if ($firstRun) {
     Write-Host 'Renaming computer'
     Rename-Computer -NewName $ServerName
     $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
-    $clearTextPassword = Convert-ToClearText $userCredentials.Password
-    Set-AutoLogon $domain $UserName $userCredentials.Password
-    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$clearTextPassword' -ServerName '$ServerName'"
+    $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
+    Set-AutoLogon $Env:USERNAME $currentUserPassword
+    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$domainUserTextPassword' -ServerName '$ServerName'"
     Restart
 }
 
 Log 'Joining Domain'
-Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCredential $userCredentials -Force
+Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCredential $domainUserCredentials -Force
 
 Log "Adding $UserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
 
 Log "Setting auto logon for $UserName"
-Set-AutoLogon $domain $UserName $userCredentials.Password
-Set-SetupScriptToRunOnBoot $UserName $userCredentials.Password
+Set-AutoLogon $UserName $domainUserCredentials.Password $domain
+Set-SetupScriptToRunOnBoot $UserName $domainUserCredentials.Password
 
 Restart
