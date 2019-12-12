@@ -40,7 +40,8 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
 
 function Restart {
     Log "Restarting"
-    Restart-Computer -Force    
+    Restart-Computer -Force
+    exit
 }
 
 function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {    
@@ -58,42 +59,36 @@ function New-Credentials([string]$userName, [string]$password) {
 
 $domain = 'qualisystems'
 $fullDomainUserName = "$domain\$UserName"
+$firstRun = [string]::IsNullOrEmpty($Password)
 
-if ([string]::IsNullOrEmpty($Password)) {
+if ($firstRun) {
     $currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
     $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
     $ServerName = Read-Host 'Server Name'
-    $firstRun = $true
-}
-else {
-    $domainUserCredentials = New-Credentials -userName $UserName -password $Password
-    $firstRun = $false
-}
 
-Install-PackageProvider -Name NuGet -Force -Confirm:$False
+    Install-PackageProvider -Name NuGet -Force -Confirm:$False
 
-@('ComputerManagementDsc',
-    'xNetworking',
-    'xRemoteDesktopAdmin',
-    'DSCR_PowerPlan') | foreach {
-    if ((Get-Module $_ -list) -eq $null) { 
-        Log "Installing $_"; Install-Module $_ -Force -Confirm:$False
+    @('ComputerManagementDsc',
+        'xNetworking',
+        'xRemoteDesktopAdmin',
+        'DSCR_PowerPlan') | foreach {
+        if ((Get-Module $_ -list) -eq $null) { 
+            Log "Installing $_"; Install-Module $_ -Force -Confirm:$False
+        }
     }
-}
 
-Log 'Setting the time zone'
-Set-TimeZone -Id "Israel Standard Time"
+    Log 'Setting the time zone'
+    Set-TimeZone -Id "Israel Standard Time"
 
-Log "Disabling Firewall"
-Set-NetFirewallProfile -All -Enabled False -Verbose
+    Log "Disabling Firewall"
+    Set-NetFirewallProfile -All -Enabled False -Verbose
 
-Log 'Enabling samba version 1.0'
-Install-WindowsFeature -Name "FS-SMB1"
+    Log 'Enabling samba version 1.0'
+    Install-WindowsFeature -Name "FS-SMB1"
 
-Log "Disabling server manager at startup"
-Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
+    Log "Disabling server manager at startup"
+    Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
 
-if ($firstRun) {
     Write-Host 'Renaming computer'
     Rename-Computer -NewName $ServerName
     $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
@@ -102,6 +97,8 @@ if ($firstRun) {
     Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$domainUserTextPassword'"
     Restart
 }
+
+$domainUserCredentials = New-Credentials -userName $UserName -password $Password
 
 Log 'Joining Domain'
 Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCredential $domainUserCredentials -Force
