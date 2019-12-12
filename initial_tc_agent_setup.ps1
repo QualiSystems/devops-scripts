@@ -53,61 +53,69 @@ function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) 
 }
 
 function New-Credentials([string]$userName, [string]$password) {
-    $secureStringPwd = $password | ConvertTo-SecureString -AsPlainText -Force 
+    $secureStringPwd = $password | ConvertTo-SecureString -AsPlainText -Force
     return New-Object System.Management.Automation.PSCredential -ArgumentList $userName, $secureStringPwd
 }
 
-$domain = 'qualisystems'
-$fullDomainUserName = "$domain\$UserName"
-$firstRun = [string]::IsNullOrEmpty($Password)
+$now = Get-Date
+Start-Transcript -Path "$($Env:Temp)\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
 
-if ($firstRun) {
-    $currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
-    $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
-    $ServerName = Read-Host 'Server Name'
+try {
+    $domain = 'qualisystems'
+    $fullDomainUserName = "$domain\$UserName"
+    $firstRun = [string]::IsNullOrEmpty($Password)
 
-    Install-PackageProvider -Name NuGet -Force -Confirm:$False
+    if ($firstRun) {
+        $currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
+        $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
+        $ServerName = Read-Host 'Server Name'
 
-    @('ComputerManagementDsc',
-        'xNetworking',
-        'xRemoteDesktopAdmin',
-        'DSCR_PowerPlan') | foreach {
-        if ((Get-Module $_ -list) -eq $null) { 
-            Log "Installing $_"; Install-Module $_ -Force -Confirm:$False
+        Install-PackageProvider -Name NuGet -Force -Confirm:$False
+
+        @('ComputerManagementDsc',
+            'xNetworking',
+            'xRemoteDesktopAdmin',
+            'DSCR_PowerPlan') | foreach {
+            if ((Get-Module $_ -list) -eq $null) { 
+                Log "Installing $_"; Install-Module $_ -Force -Confirm:$False
+            }
         }
+
+        Log 'Setting the time zone'
+        Set-TimeZone -Id "Israel Standard Time"
+
+        Log "Disabling Firewall"
+        Set-NetFirewallProfile -All -Enabled False -Verbose
+
+        Log 'Enabling samba version 1.0'
+        Install-WindowsFeature -Name "FS-SMB1"
+
+        Log "Disabling server manager at startup"
+        Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
+
+        Write-Host 'Renaming computer'
+        Rename-Computer -NewName $ServerName
+        $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
+        $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
+        Set-AutoLogon $Env:USERNAME $currentUserPassword
+        Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$domainUserTextPassword'"
+        Restart
     }
 
-    Log 'Setting the time zone'
-    Set-TimeZone -Id "Israel Standard Time"
+    $domainUserCredentials = New-Credentials -userName $UserName -password $Password
 
-    Log "Disabling Firewall"
-    Set-NetFirewallProfile -All -Enabled False -Verbose
+    Log 'Joining Domain'
+    Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCredential $domainUserCredentials -Force
 
-    Log 'Enabling samba version 1.0'
-    Install-WindowsFeature -Name "FS-SMB1"
+    Log "Adding $UserName to administrators group"
+    Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
 
-    Log "Disabling server manager at startup"
-    Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
+    Log "Setting auto logon for $UserName"
+    Set-AutoLogon $UserName $domainUserCredentials.Password $domain
+    Set-SetupScriptToRunOnBoot $UserName $domainUserCredentials.Password
 
-    Write-Host 'Renaming computer'
-    Rename-Computer -NewName $ServerName
-    $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
-    $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
-    Set-AutoLogon $Env:USERNAME $currentUserPassword
-    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$domainUserTextPassword'"
     Restart
 }
-
-$domainUserCredentials = New-Credentials -userName $UserName -password $Password
-
-Log 'Joining Domain'
-Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCredential $domainUserCredentials -Force
-
-Log "Adding $UserName to administrators group"
-Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
-
-Log "Setting auto logon for $UserName"
-Set-AutoLogon $UserName $domainUserCredentials.Password $domain
-Set-SetupScriptToRunOnBoot $UserName $domainUserCredentials.Password
-
-Restart
+finally {
+    Stop-Transcript
+}
