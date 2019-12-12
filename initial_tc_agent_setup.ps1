@@ -33,9 +33,9 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
     $registryEntry = "SetupTCAgent"
     $guid = (New-Guid).ToString('n')
     $setupScriptName = "TCAgentSetup_$guid.ps1"
-    $setupScriptPath = Join-Path $Env:Temp -ChildPath $setupScriptName
+    $setupScriptPath = Join-Path $setupScriptsFolder -ChildPath $setupScriptName
     
-    New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $scriptContent
+    New-Item -Force -Path $setupScriptsFolder -Name $setupScriptName -ItemType "file" -Value $scriptContent
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File '$setupScriptPath' $scriptArguments"
     
     Log "Setting script to run on boot: $command"
@@ -62,14 +62,16 @@ function New-Credentials([string]$userName, [string]$password) {
 }
 
 $now = Get-Date
-Start-Transcript -Path "$($Env:Temp)\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
+Start-Transcript -Path "$setupScriptsFolder\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
 
 try {
+    $setupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
     $domain = 'qualisystems'
     $fullDomainUserName = "$domain\$UserName"
     $firstRun = [string]::IsNullOrEmpty($Password)
 
     if ($firstRun) {
+        New-Item -ItemType Directory -Path $setupScriptsFolder -Force
         $currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
         $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
         $ServerName = Read-Host 'Server Name'
