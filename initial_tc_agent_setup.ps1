@@ -101,10 +101,14 @@ try {
 
         Write-Host 'Renaming computer'
         Rename-Computer -NewName $ServerName
-        $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
+        
         $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
         Set-AutoLogon $Env:USERNAME $currentUserPassword
-        Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$domainUserTextPassword'"
+
+        $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
+        $arguments = "-UserName '$UserName' -Password '$domainUserTextPassword'"
+        Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments $arguments
+
         Restart
     }
 
