@@ -142,7 +142,7 @@ try {
     Restart
 }
 catch {
-    Log "An exception was raised"
+    Log "An exception was raised $_"
     if(-not $DebugMode) {
         Read-Host "Press enter to continue"
     }

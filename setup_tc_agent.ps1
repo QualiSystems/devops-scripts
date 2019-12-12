@@ -126,7 +126,7 @@ env.TEAMCITY_JRE=$jrePath
     Start-Process -FilePath $qsBuildExePath -Wait -NoNewWindow -ArgumentList '/RunnerType=AgentMaintenance', '/Verbosity=Max', '/IsTeamCity=false', '/SolutionRoot=NONE', '/BuildId=0', "/TriggeredBy=$UserName", '/SkipScreenResolution=true', '/SkipAntiVirus=true', '/SkipDisablingAgent=true'
 }
 catch {
-    Log "An exception was raised"
+    Log "An exception was raised: $_"
     if(-not $DebugMode) {
         Read-Host "Press enter to continue"
     }
