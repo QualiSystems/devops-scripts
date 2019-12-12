@@ -99,7 +99,7 @@ if ($firstRun) {
     $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
     $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
     Set-AutoLogon $Env:USERNAME $currentUserPassword
-    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$domainUserTextPassword' -ServerName '$ServerName'"
+    Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments "-User '$UserName' -Password '$domainUserTextPassword'"
     Restart
 }
 
