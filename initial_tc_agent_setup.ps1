@@ -9,7 +9,7 @@ param (
 function Log([string]$message) {
     Write-Host $message
     if ($DebugMode) {
-        Read-Host "Press enter to continue..."
+        Read-Host "Press enter to continue"
     }
 }
 
@@ -144,6 +144,12 @@ try {
     Set-SetupScriptToRunOnBoot $UserName $domainUserCredentials.Password
 
     Restart
+}
+catch {
+    Log "An exception was raised"
+    if(-not $DebugMode) {
+        Read-Host "Press enter to continue"
+    }
 }
 finally {
     Stop-Transcript

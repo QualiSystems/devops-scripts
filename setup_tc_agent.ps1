@@ -125,6 +125,12 @@ env.TEAMCITY_JRE=$jrePath
     $qsBuildExePath = Join-Path -Path $qsAgentSpyFolder -ChildPath 'QsBuild.exe'
     Start-Process -FilePath $qsBuildExePath -Wait -NoNewWindow -ArgumentList '/RunnerType=AgentMaintenance', '/Verbosity=Max', '/IsTeamCity=false', '/SolutionRoot=NONE', '/BuildId=0', "/TriggeredBy=$UserName", '/SkipScreenResolution=true', '/SkipAntiVirus=true', '/SkipDisablingAgent=true'
 }
+catch {
+    Log "An exception was raised"
+    if(-not $DebugMode) {
+        Read-Host "Press enter to continue"
+    }
+}
 finally {
     Stop-Transcript
 }
