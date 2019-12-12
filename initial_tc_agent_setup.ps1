@@ -129,6 +129,7 @@ try {
         Restart
     }
 
+    Log "Creating credentials to join domain: $fullDomainUserName $Password"
     $domainUserCredentials = New-Credentials -userName $fullDomainUserName -password $Password
 
     Log 'Joining Domain'
