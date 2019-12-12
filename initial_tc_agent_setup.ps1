@@ -42,10 +42,6 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
     New-Item -Force -Path $setupScriptsFolder -Name $setupScriptName -ItemType "file" -Value $scriptContent
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath $scriptArguments"
 
-    if ($DebugMode) {
-        $command = "cmd /k ""$command"" & ""echo debugging"""
-    }
-    
     Log "Setting script to run on boot: $command"
     Set-ItemProperty -Path $registryKey -Name $registryEntry -Value $command
 }
