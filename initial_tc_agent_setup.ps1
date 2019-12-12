@@ -81,7 +81,7 @@ try {
     $firstRun = [string]::IsNullOrEmpty($Password)
 
     if ($firstRun) {        
-        $currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
+        $localUserCredentials = Get-Credential -UserName $Env:USERNAME "Please enter $($Env:USERNAME) password" -AsSecureString
         $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
         $ServerName = Read-Host 'Server Name'
 
@@ -113,7 +113,7 @@ try {
         Rename-Computer -NewName $ServerName
         
         $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
-        Set-AutoLogon $Env:USERNAME $currentUserPassword
+        Set-AutoLogon $Env:USERNAME $localUserCredentials.Password
 
         $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
         $arguments = "-UserName '$UserName' -Password '$domainUserTextPassword'"
