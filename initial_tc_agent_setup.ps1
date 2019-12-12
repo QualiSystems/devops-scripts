@@ -21,7 +21,7 @@ function Set-AutoLogon([string]$userName, [SecureString]$password, [string]$doma
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "AutoAdminLogon" -Value "1"
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultUserName" -Value $userName
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultPassword" -Value $passwordInClearText
-    if ([string]::IsNullOrEmpty($domainName)) {
+    if (-not [string]::IsNullOrEmpty($domainName)) {
         Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultDomainName" -Value $domainName
     }
 }
