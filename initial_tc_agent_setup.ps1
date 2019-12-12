@@ -18,6 +18,8 @@ function Set-AutoLogon([string]$userName, [SecureString]$password, [string]$doma
     $autoLogonRegistryKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
     $passwordInClearText = Convert-ToClearText $password
 
+    Log "Setting AutoAdminLogon - user: $userName domain; $domainName"
+
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "AutoAdminLogon" -Value "1"
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultUserName" -Value $userName
     Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultPassword" -Value $passwordInClearText
@@ -35,6 +37,8 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
     
     New-Item -Force -Path $Env:Temp -Name $setupScriptName -ItemType "file" -Value $scriptContent
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File '$setupScriptPath' $scriptArguments"
+    
+    Log "Setting script to run on boot: {$command}"
     Set-ItemProperty -Path $registryKey -Name $registryEntry -Value $command
 }
 
@@ -47,7 +51,7 @@ function Restart {
 function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {    
     $passwordInClearText = Convert-ToClearText $password
     $setupScriptName = 'setup_tc_agent.ps1'    
-    $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")    
+    $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")
 
     Set-ScriptToRunOnBoot $setupScriptContent "-UserName '$userName' -Password '$passwordInClearText'"
 }
