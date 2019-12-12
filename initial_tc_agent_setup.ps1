@@ -63,15 +63,15 @@ function New-Credentials([string]$userName, [string]$password) {
 
 $now = Get-Date
 $setupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
+New-Item -ItemType Directory -Path $setupScriptsFolder -Force
 Start-Transcript -Path "$setupScriptsFolder\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
 
-try {    
+try {
     $domain = 'qualisystems'
     $fullDomainUserName = "$domain\$UserName"
     $firstRun = [string]::IsNullOrEmpty($Password)
 
-    if ($firstRun) {
-        New-Item -ItemType Directory -Path $setupScriptsFolder -Force
+    if ($firstRun) {        
         $currentUserPassword = Read-Host "Please enter $($Env:USERNAME) password" -AsSecureString
         $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
         $ServerName = Read-Host 'Server Name'
