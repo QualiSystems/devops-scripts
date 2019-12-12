@@ -2,11 +2,15 @@
 
 param (
     [string]$UserName = 'buser',
-    [string]$Password
+    [string]$Password,
+    [switch]$DebugMode
 )
 
-function Log([string]$message) {    
+function Log([string]$message) {
     Write-Host $message
+    if ($DebugMode) {
+        Read-Host "Press enter to continue..."
+    }
 }
 
 function Convert-ToClearText([securestring]$secureString) {
@@ -36,7 +40,11 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
     $setupScriptPath = Join-Path $setupScriptsFolder -ChildPath $setupScriptName
     
     New-Item -Force -Path $setupScriptsFolder -Name $setupScriptName -ItemType "file" -Value $scriptContent
-    $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File '$setupScriptPath' $scriptArguments"
+    $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath $scriptArguments"
+
+    if ($DebugMode) {
+        $command = "cmd /k ""$command"" & ""echo debugging"""
+    }
     
     Log "Setting script to run on boot: $command"
     Set-ItemProperty -Path $registryKey -Name $registryEntry -Value $command
@@ -52,8 +60,13 @@ function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) 
     $passwordInClearText = Convert-ToClearText $password
     $setupScriptName = 'setup_tc_agent.ps1'    
     $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")
+    $arguments = "-UserName '$userName' -Password '$passwordInClearText'"
 
-    Set-ScriptToRunOnBoot $setupScriptContent "-UserName '$userName' -Password '$passwordInClearText'"
+    if ($DebugMode) {
+        $arguments = "$arguments -DebugMode"
+    }
+
+    Set-ScriptToRunOnBoot $setupScriptContent $arguments
 }
 
 function New-Credentials([string]$userName, [string]$password) {
@@ -76,6 +89,7 @@ try {
         $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
         $ServerName = Read-Host 'Server Name'
 
+        Log 'Installing Nuget package provider'
         Install-PackageProvider -Name NuGet -Force -Confirm:$False
 
         @('ComputerManagementDsc',
@@ -107,6 +121,11 @@ try {
 
         $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
         $arguments = "-UserName '$UserName' -Password '$domainUserTextPassword'"
+        
+        if ($DebugMode) {
+            $arguments = "$arguments -DebugMode"
+        }
+
         Set-ScriptToRunOnBoot -scriptContent $content -scriptArguments $arguments
 
         Restart

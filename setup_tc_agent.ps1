@@ -1,10 +1,14 @@
 param (
     [string]$UserName,
-    [string]$Password
+    [string]$Password,
+    [switch]$DebugMode
 )
 
 function Log([string]$message) {    
     Write-Host $message
+    if ($DebugMode) {
+        Read-Host "Press enter to continue..."
+    }
 }
 
 $now = Get-Date
@@ -114,6 +118,7 @@ ownPort=9090
 env.TEAMCITY_JRE=$jrePath
 "@
 
+    Log "Writing agent config file - $agentConfiguration"
     New-Item -Path "$buildAgentPath\conf\" -Name 'buildAgent.properties' -Type 'file' -Value $agentConfiguration -Force
 
     Log "Running agent maintenance"
