@@ -127,7 +127,7 @@ try {
         Restart
     }
 
-    $domainUserCredentials = New-Credentials -userName $UserName -password $Password
+    $domainUserCredentials = New-Credentials -userName $fullDomainUserName -password $Password
 
     Log 'Joining Domain'
     Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCredential $domainUserCredentials -Force
