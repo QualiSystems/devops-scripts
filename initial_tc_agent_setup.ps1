@@ -6,6 +6,8 @@ param (
     [switch]$DebugMode
 )
 
+$ErrorActionPreference = if($DebugMode) { "Inquire" } else { "Stop" }
+
 function Log([string]$message) {
     Write-Host $message
     if ($DebugMode) {
