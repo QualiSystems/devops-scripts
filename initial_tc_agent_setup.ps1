@@ -81,7 +81,7 @@ try {
     $firstRun = [string]::IsNullOrEmpty($Password)
 
     if ($firstRun) {        
-        $localUserCredentials = Get-Credential -UserName $Env:USERNAME "Please enter $($Env:USERNAME) password" -AsSecureString
+        $localUserCredentials = Get-Credential -UserName $Env:USERNAME -Message "Please enter $($Env:USERNAME) password"
         $domainUserCredentials = Get-Credential -UserName $fullDomainUserName -Message "Please enter $UserName password"
         $ServerName = Read-Host 'Server Name'
 
@@ -142,7 +142,7 @@ try {
     Restart
 }
 catch {
-    Log "An exception was raised $_"
+    Log "An exception was raised: $_"
     if(-not $DebugMode) {
         Read-Host "Press enter to continue"
     }
