@@ -87,7 +87,8 @@ try {
 
     Log 'Activating Windows'
     $computer = $Env:ComputerName
-    $agentInfo = ConvertFrom-Json (Get-Content "\\qsnas1\Storage\devops\TC_Agent_Automation\setup_info.json")
+    $agentInfoText = Get-Content "\\qsnas1\Storage\devops\TC_Agent_Automation\setup_info.json"
+    $agentInfo = $agentInfoText | ConvertFrom-Json 
     $activationKey = $agentInfo.ActivationKey
     $service = get-wmiObject -query "select * from SoftwareLicensingService" -computername $computer
     $service.InstallProductKey($activationKey)
