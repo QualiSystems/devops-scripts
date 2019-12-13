@@ -44,9 +44,9 @@ try {
     choco install -y googlechrome 7zip everything
     choco install -y sql-server-2017
     choco install -y nodejs
-    choco install -y python2
+    choco install -y python2 --params "/PrependPath:1"
     choco install -y vcpython27
-    choco install -y python3
+    choco install -y python3 --params "/PrependPath:1"
     choco install -y jdk8
 
     $networkInstallersPath = "\\qsnas1\Storage\devops\TC_Agent_Automation"
@@ -81,9 +81,7 @@ try {
     Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
 
     Log 'Setting evironment variables'
-    $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
     [System.Environment]::SetEnvironmentVariable('UseCommandLineService', 'True', [System.EnvironmentVariableTarget]::Machine)
-    [System.Environment]::SetEnvironmentVariable('Path', $currentPath + 'C:\Python38;C:\Python38\Scripts;' , [System.EnvironmentVariableTarget]::Machine)
 
     Log 'Activating Windows'
     $computer = $Env:ComputerName
