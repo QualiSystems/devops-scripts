@@ -44,9 +44,9 @@ try {
     choco install -y googlechrome 7zip everything
     choco install -y sql-server-2017
     choco install -y nodejs
-    choco install -y python2 --params "/PrependPath:1"
+    choco install -y python2 --params "PrependPath=1"
     choco install -y vcpython27
-    choco install -y python3 --params "/PrependPath:1"
+    choco install -y python3 --params "PrependPath=1"
     choco install -y jdk8
 
     $networkInstallersPath = "\\qsnas1\Storage\devops\TC_Agent_Automation"
