@@ -58,7 +58,7 @@ function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) 
     $passwordInClearText = Convert-ToClearText $password
     $setupScriptName = 'setup_tc_agent.ps1'    
     $setupScriptContent = (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName")
-    $arguments = "-UserName '$userName' -Password '$passwordInClearText'"
+    $arguments = "-UserName $userName -Password $passwordInClearText"
 
     if ($DebugMode) {
         $arguments = "$arguments -DebugMode"
@@ -118,7 +118,7 @@ try {
         Set-AutoLogon $Env:USERNAME $localUserCredentials.Password
 
         $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
-        $arguments = "-UserName '$UserName' -Password '$domainUserTextPassword'"
+        $arguments = "-UserName $UserName -Password $domainUserTextPassword"
         
         if ($DebugMode) {
             $arguments = "$arguments -DebugMode"
