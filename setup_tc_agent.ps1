@@ -18,7 +18,7 @@ $setupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSe
 Start-Transcript -Path "$setupScriptsFolder\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
 
 try {
-    $secureStringPwd = $Password | ConvertTo-SecureString -AsPlainText -Force 
+    $secureStringPwd = $Password | ConvertTo-SecureString -AsPlainText -Force
     $userCredentials = New-Object System.Management.Automation.PSCredential -ArgumentList $UserName, $secureStringPwd
 
     Log 'Enabling RDP'
@@ -43,7 +43,7 @@ try {
     Log 'Installing chocolatey packages'
     choco install -y vcredist-all
     choco install -y googlechrome 7zip everything
-    choco install -y sql-server-2017
+    choco install -y sql-server-2017 --params="'/IsoPath:\\qsnas1\storage\devops\TC_Agent_Automation\en_sql_server_2017_developer_x64_dvd_11296168.iso'"
     choco install -y nodejs-lts
     choco install -y python2 --params "PrependPath=1"
     choco install -y vcpython27
@@ -85,7 +85,7 @@ try {
     Log 'Adding paths to the path environment variable'
     $pathRegisteryKey = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
     $currentPath = (Get-ItemProperty -Path $pathRegisteryKey -Name 'PATH').Path
-    $newPath = $currentPath + ';C:\Program Files\Microsoft SQL Server\110\Tools\Binn\;C:\Program Files (x86)\Microsoft Team Foundation Server 2013 Power Tools\;C:\Program Files\nodejs\;C:\Program Files\Git\cmd'
+    $newPath = $currentPath + ';C:\Program Files (x86)\Microsoft Team Foundation Server 2013 Power Tools\'
     Set-ItemProperty -Path $pathRegisteryKey -Name 'PATH' -Value $newPath
 
     Log 'Setting evironment variables'
