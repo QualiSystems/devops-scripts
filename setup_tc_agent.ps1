@@ -41,13 +41,15 @@ try {
     Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
     Log 'Installing chocolatey packages'
+    choco install -y vcredist-all
     choco install -y googlechrome 7zip everything
     choco install -y sql-server-2017
-    choco install -y nodejs
+    choco install -y nodejs-lts
     choco install -y python2 --params "PrependPath=1"
     choco install -y vcpython27
     choco install -y python3 --params "PrependPath=1"
     choco install -y jdk8
+    choco install -y ruby.portable
 
     $networkInstallersPath = "\\qsnas1\Storage\devops\TC_Agent_Automation"
 
@@ -79,6 +81,12 @@ try {
 
     Log 'Installing VMware PowerCLI'
     Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
+    
+    Log 'Adding paths to the path environment variable'
+    $pathRegisteryKey = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+    $currentPath = Get-ItemProperty -Path $pathRegisteryKey -Name 'PATH'
+    $newPath = $currentPath + ';C:\Program Files (x86)\Microsoft Team Foundation Server 2013 Power Tools\;C:\Program Files\nodejs\;C:\Program Files\Git\cmd'
+    Set-ItemProperty -Path $pathRegisteryKey -Name 'PATH' -Value -$newPath
 
     Log 'Setting evironment variables'
     [System.Environment]::SetEnvironmentVariable('UseCommandLineService', 'True', [System.EnvironmentVariableTarget]::Machine)
