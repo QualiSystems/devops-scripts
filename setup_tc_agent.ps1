@@ -85,7 +85,7 @@ try {
     Log 'Adding paths to the path environment variable'
     $pathRegisteryKey = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
     $currentPath = (Get-ItemProperty -Path $pathRegisteryKey -Name 'PATH').Path
-    $newPath = $currentPath + ';C:\Program Files (x86)\Microsoft Team Foundation Server 2013 Power Tools\;C:\Program Files\nodejs\;C:\Program Files\Git\cmd'
+    $newPath = $currentPath + ';C:\Program Files\Microsoft SQL Server\110\Tools\Binn\;C:\Program Files (x86)\Microsoft Team Foundation Server 2013 Power Tools\;C:\Program Files\nodejs\;C:\Program Files\Git\cmd'
     Set-ItemProperty -Path $pathRegisteryKey -Name 'PATH' -Value $newPath
 
     Log 'Setting evironment variables'
