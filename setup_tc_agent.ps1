@@ -4,7 +4,7 @@ param (
     [switch]$DebugMode
 )
 
-$ErrorActionPreference = if($DebugMode) { 'Inquire' } else { 'Stop' }
+$ErrorActionPreference = if ($DebugMode) { 'Inquire' } else { 'Stop' }
 
 function Log([string]$message) {    
     Write-Host $message
@@ -15,7 +15,10 @@ function Log([string]$message) {
 
 $now = Get-Date
 $setupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
-Start-Transcript -Path "$setupScriptsFolder\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
+$logPath = "$setupScriptsFolder\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
+
+Write-Host "Writing transcript to $logPath"
+Start-Transcript -Path $logPath
 
 try {
     $secureStringPwd = $Password | ConvertTo-SecureString -AsPlainText -Force
@@ -80,6 +83,15 @@ try {
     Log 'Installing VMware PowerCLI'
     Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
     
+    Log 'Installing Citrix XenServer Tools'
+    $citrixVmToolsSetupAtCDPath = 'D:\Setup.exe'
+    if (Test-Path $citrixVmToolsSetupAtCDPath) {
+        Start-Process -FilePath $citrixVmToolsSetupAtCDPath -Wait -NoNewWindow -ArgumentList '/passive', '/norestart'
+    }
+    else {
+        Start-Process -FilePath 'msiexec.exe' -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\managementagentx64.msi`"", '/passive', '/norestart'
+    }
+
     Log 'Adding paths to the path environment variable'
     $pathRegisteryKey = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
     $currentPath = (Get-ItemProperty -Path $pathRegisteryKey -Name 'PATH').Path
@@ -134,7 +146,7 @@ env.TEAMCITY_JRE=$jrePath
 }
 catch {
     Log "An exception was raised: $_"
-    if(-not $DebugMode) {
+    if (-not $DebugMode) {
         Read-Host 'Press enter to continue'
     }
 }
