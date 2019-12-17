@@ -1,4 +1,4 @@
-#Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1'))
+#Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/agent.ps1'))
 
 param (
     [string]$UserName = 'buser',
@@ -117,7 +117,7 @@ try {
         $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
         Set-AutoLogon $Env:USERNAME $localUserCredentials.Password
 
-        $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/initial_tc_agent_setup.ps1')
+        $content = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/agent.ps1')
         $arguments = "-UserName $UserName -Password $domainUserTextPassword"
         
         if ($DebugMode) {
