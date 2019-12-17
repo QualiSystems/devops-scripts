@@ -4,12 +4,12 @@ param (
     [switch]$DebugMode
 )
 
-$ErrorActionPreference = if($DebugMode) { "Inquire" } else { "Stop" }
+$ErrorActionPreference = if($DebugMode) { 'Inquire' } else { 'Stop' }
 
 function Log([string]$message) {    
     Write-Host $message
     if ($DebugMode) {
-        Read-Host "Press enter to continue..."
+        Read-Host 'Press enter to continue...'
     }
 }
 
@@ -20,6 +20,7 @@ Start-Transcript -Path "$setupScriptsFolder\tc_agent_setup_log-$($now.Month)-$($
 try {
     $secureStringPwd = $Password | ConvertTo-SecureString -AsPlainText -Force
     $userCredentials = New-Object System.Management.Automation.PSCredential -ArgumentList $UserName, $secureStringPwd
+    $networkInstallersPath = '\\qsnas1\Storage\devops\unattended'
 
     Log 'Enabling RDP'
     Invoke-DscResource -Name xRemoteDesktopAdmin -ModuleName xRemoteDesktopAdmin -Property  @{Ensure = 'Present'; UserAuthentication = 'Secure' } -Method Set
@@ -43,15 +44,13 @@ try {
     Log 'Installing chocolatey packages'
     choco install -y vcredist-all
     choco install -y googlechrome 7zip everything
-    choco install -y sql-server-2017 --params="'/IsoPath:\\qsnas1\storage\devops\TC_Agent_Automation\en_sql_server_2017_developer_x64_dvd_11296168.iso'"
+    choco install -y sql-server-2017 --params="'/IsoPath:$networkInstallersPath\en_sql_server_2017_developer_x64_dvd_11296168.iso'"
     choco install -y nodejs-lts
-    choco install -y python2 --params "PrependPath=1"
+    choco install -y python2 --params 'PrependPath=1'
     choco install -y vcpython27
-    choco install -y python3 --params "PrependPath=1"
+    choco install -y python3 --params 'PrependPath=1'
     choco install -y jdk8
-    choco install -y ruby.portable
-
-    $networkInstallersPath = "\\qsnas1\Storage\devops\TC_Agent_Automation"
+    choco install -y ruby.portable    
 
     Log 'Installing ASPNet MVC 4'
     Start-Process -FilePath "$networkInstallersPath\AspNetMVC4Setup.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
@@ -63,18 +62,17 @@ try {
     Start-Process -FilePath "$networkInstallersPath\BuildTools_Full_2015.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
 
     Log 'Installing Visual Studio 2017'
-    $vs2017InstallerPath = "$networkInstallersPath\vs_Enterprise.exe"
-    Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '--update', '--passive', '--wait', '--norestart'
-    Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow -ArgumentList '--config', "`"$networkInstallersPath\.vsconfig`"", '--passive', '--wait', '--norestart', '--nocache'
+    $vs2017InstallerPath = "$networkInstallersPath\VS2017Layout\vs_Enterprise.exe"
+    Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow
 
     Log 'Installing Visual Studio 2013 Team Explorer'
     Start-Process -FilePath "$networkInstallersPath\vs_teamExplorer.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
 
     Log 'Installing TFS power tools 2013'
-    Start-Process -FilePath "msiexec.exe" -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\Team Foundation Server 2013 Power Tools.msi`"", '/passive', '/norestart'
+    Start-Process -FilePath 'msiexec.exe' -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\Team Foundation Server 2013 Power Tools.msi`"", '/passive', '/norestart'
 
     Log 'Installing Wix 3.5'
-    Start-Process -FilePath "msiexec.exe" -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\Wix35.msi`"", '/passive', '/norestart'
+    Start-Process -FilePath 'msiexec.exe' -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\Wix35.msi`"", '/passive', '/norestart'
 
     Log 'Installing VMware SDK'
     Start-Process -FilePath "$networkInstallersPath\VMware-vix-1.11.2-591240.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
@@ -93,21 +91,21 @@ try {
 
     Log 'Activating Windows'
     $computer = $Env:ComputerName
-    $agentInfoText = Get-Content "\\qsnas1\Storage\devops\TC_Agent_Automation\setup_info.json"
+    $agentInfoText = Get-Content "$networkInstallersPath\setup_info.json"
     $agentInfo = $agentInfoText | ConvertFrom-Json 
     $activationKey = $agentInfo.ActivationKey
-    $service = get-wmiObject -query "select * from SoftwareLicensingService" -computername $computer
+    $service = get-wmiObject -query 'select * from SoftwareLicensingService' -computername $computer
     $service.InstallProductKey($activationKey)
     $service.RefreshLicenseStatus()
 
-    Log "Downloading TeamCity build agent"
+    Log 'Downloading TeamCity build agent'
     $tcAgentArchivePath = Join-Path $env:Temp -ChildPath 'buildAgent.zip'
     $buildAgentPath = 'C:\BuildAgent'
 
     Invoke-RestMethod -Method Get http://tc/update/buildAgent.zip -OutFile $tcAgentArchivePath
     Expand-Archive $tcAgentArchivePath -DestinationPath $buildAgentPath
 
-    Log "Downloading latest QsBuild artifacts from TeamCity"
+    Log 'Downloading latest QsBuild artifacts from TeamCity'
     $qsbuildArchivePath = Join-Path $Env:Temp -ChildPath 'qsbuild.zip'
     $qsAgentSpyFolder = "$($Env:Temp)\QsAgentSpy"
     Invoke-RestMethod -Method Get "http://tc/httpAuth/app/rest/builds/count:1,pinned:true,buildType:Trunk_Tools_QsBuild/artifacts/content/QsBuild.zip" -Credential $userCredentials -OutFile $qsbuildArchivePath
@@ -130,14 +128,14 @@ env.TEAMCITY_JRE=$jrePath
     Log "Writing agent config file - $agentConfiguration"
     New-Item -Path "$buildAgentPath\conf\" -Name 'buildAgent.properties' -Type 'file' -Value $agentConfiguration -Force
 
-    Log "Running agent maintenance"
+    Log 'Running agent maintenance'
     $qsBuildExePath = Join-Path -Path $qsAgentSpyFolder -ChildPath 'QsBuild.exe'
     Start-Process -FilePath $qsBuildExePath -Wait -NoNewWindow -ArgumentList '/RunnerType=AgentMaintenance', '/Verbosity=Max', '/IsTeamCity=false', '/SolutionRoot=NONE', '/BuildId=0', "/TriggeredBy=$UserName", '/SkipScreenResolution=true', '/SkipAntiVirus=true', '/SkipDisablingAgent=true'
 }
 catch {
     Log "An exception was raised: $_"
     if(-not $DebugMode) {
-        Read-Host "Press enter to continue"
+        Read-Host 'Press enter to continue'
     }
 }
 finally {

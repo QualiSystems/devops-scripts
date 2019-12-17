@@ -6,12 +6,12 @@ param (
     [switch]$DebugMode
 )
 
-$ErrorActionPreference = if($DebugMode) { "Inquire" } else { "Stop" }
+$ErrorActionPreference = if($DebugMode) { 'Inquire' } else { 'Stop' }
 
 function Log([string]$message) {
     Write-Host $message
     if ($DebugMode) {
-        Read-Host "Press enter to continue"
+        Read-Host 'Press enter to continue'
     }
 }
 
@@ -21,27 +21,27 @@ function Convert-ToClearText([securestring]$secureString) {
 }
 
 function Set-AutoLogon([string]$userName, [SecureString]$password, [string]$domainName) {
-    $autoLogonRegistryKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+    $autoLogonRegistryKey = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
     $passwordInClearText = Convert-ToClearText $password
 
     Log "Setting AutoAdminLogon - user: $userName domain; $domainName"
 
-    Set-ItemProperty -Path $autoLogonRegistryKey -Name "AutoAdminLogon" -Value "1"
-    Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultUserName" -Value $userName
-    Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultPassword" -Value $passwordInClearText
+    Set-ItemProperty -Path $autoLogonRegistryKey -Name 'AutoAdminLogon' -Value '1'
+    Set-ItemProperty -Path $autoLogonRegistryKey -Name 'DefaultUserName' -Value $userName
+    Set-ItemProperty -Path $autoLogonRegistryKey -Name 'DefaultPassword' -Value $passwordInClearText
     if (-not [string]::IsNullOrEmpty($domainName)) {
-        Set-ItemProperty -Path $autoLogonRegistryKey -Name "DefaultDomainName" -Value $domainName
+        Set-ItemProperty -Path $autoLogonRegistryKey -Name 'DefaultDomainName' -Value $domainName
     }
 }
 
 function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments) {
-    $registryKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
-    $registryEntry = "SetupTCAgent"
+    $registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
+    $registryEntry = 'SetupTCAgent'
     $guid = (New-Guid).ToString('n')
     $setupScriptName = "TCAgentSetup_$guid.ps1"
     $setupScriptPath = Join-Path $setupScriptsFolder -ChildPath $setupScriptName
     
-    New-Item -Force -Path $setupScriptsFolder -Name $setupScriptName -ItemType "file" -Value $scriptContent
+    New-Item -Force -Path $setupScriptsFolder -Name $setupScriptName -ItemType 'file' -Value $scriptContent
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath $scriptArguments"
 
     Log "Setting script to run on boot: $command"
@@ -49,7 +49,7 @@ function Set-ScriptToRunOnBoot([string]$scriptContent, [string]$scriptArguments)
 }
 
 function Restart {
-    Log "Restarting"
+    Log 'Restarting'
     Restart-Computer -Force
     exit
 }
@@ -100,15 +100,15 @@ try {
         }
 
         Log 'Setting the time zone'
-        Set-TimeZone -Id "Israel Standard Time"
+        Set-TimeZone -Id 'Israel Standard Time'
 
-        Log "Disabling Firewall"
+        Log 'Disabling Firewall'
         Set-NetFirewallProfile -All -Enabled False -Verbose
 
         Log 'Enabling samba version 1.0'
-        Install-WindowsFeature -Name "FS-SMB1"
+        Install-WindowsFeature -Name 'FS-SMB1'
 
-        Log "Disabling server manager at startup"
+        Log 'Disabling server manager at startup'
         Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask
 
         Write-Host 'Renaming computer'
@@ -146,7 +146,7 @@ try {
 catch {
     Log "An exception was raised: $_"
     if(-not $DebugMode) {
-        Read-Host "Press enter to continue"
+        Read-Host 'Press enter to continue'
     }
 }
 finally {
