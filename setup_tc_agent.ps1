@@ -16,19 +16,25 @@ function Log([string]$message) {
 function Install-ChocolateyPackage() {
     [CmdletBinding()]
     param(
-    [Parameter(Mandatory=$true, Position=0)][string]$packageName,
-    [parameter(mandatory=$false, position=1, ValueFromRemainingArguments=$true)]$installationArguments)
+        [Parameter(Mandatory = $true, Position = 0)][string]$packageName,
+        [parameter(mandatory = $false, position = 1, ValueFromRemainingArguments = $true)]$installationArguments)
 
     choco install -y $packageName @installationArguments
-    if($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -ne 0) {
         throw "Failed to install chocolatey package $packageName. Exit code: $LASTEXITCODE"
     }
 }
 
-function Invoke-Executable([string]$filePath, [string[]]$argumentList) {
-    $process = Start-Process -FilePath $filePath -Wait -NoNewWindow -ArgumentList $argumentList -PassThru
+function Invoke-Executable([string]$filePath, [string[]]$argumentList = $null) {
+    if ($null -eq $argumentList) {
+        $process = Start-Process -FilePath $filePath -Wait -NoNewWindow -PassThru
+    }
+    else {
+        $process = Start-Process -FilePath $filePath -Wait -NoNewWindow -ArgumentList $argumentList -PassThru
+    }
+    
     $exitCode = $process.ExitCode
-    if($exitCode -ne 0) {
+    if ($exitCode -ne 0) {
         throw "Failed to install $filePath. Exit code: $exitCode"
     }
 }
