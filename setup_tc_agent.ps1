@@ -13,6 +13,29 @@ function Log([string]$message) {
     }
 }
 
+function Install-ChocolateyPackage() {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true, Position=0)][string]$packageName,
+    [parameter(mandatory=$false, position=1, ValueFromRemainingArguments=$true)]$installationArguments)
+
+    choco install -y $packageName @installationArguments
+    if($LASTEXITCODE -ne 0) {
+        throw "Failed to install chocolatey package $packageName. Exit code: $LASTEXITCODE"
+    }
+}
+
+function Invoke-Executable([string]$filePath, [string[]]$argumentList) {
+    $process = Start-Process -FilePath $filePath -Wait -NoNewWindow -ArgumentList $argumentList -PassThru
+    $exitCode = $process.ExitCode
+    if($exitCode -ne 0) {
+        throw "Failed to install $filePath. Exit code: $exitCode"
+    }
+}
+function Invoke-MsiInstaller([string]$installerPath) {
+    Invoke-Executable -filePath 'msiexec.exe' -argumentList '/i', $installerPath, '/passive', '/norestart'
+}
+
 $now = Get-Date
 $setupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
 $logPath = "$setupScriptsFolder\tc_agent_setup_log-$($now.Month)-$($now.Day)-$($now.Hour)-$($now.Minute)-$($now.Second)-$($now.Millisecond).txt"
@@ -45,51 +68,53 @@ try {
     Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
     Log 'Installing chocolatey packages'
-    choco install -y vcredist-all
-    choco install -y googlechrome 7zip everything
-    choco install -y sql-server-2017 --params="'/IsoPath:$networkInstallersPath\en_sql_server_2017_developer_x64_dvd_11296168.iso'"
-    choco install -y nodejs-lts
-    choco install -y python2 --params 'PrependPath=1'
-    choco install -y vcpython27
-    choco install -y python3 --params 'PrependPath=1'
-    choco install -y jdk8
-    choco install -y ruby.portable    
+    Install-ChocolateyPackage vcredist-all
+    Install-ChocolateyPackage googlechrome
+    Install-ChocolateyPackage 7zip
+    Install-ChocolateyPackage everything
+    Install-ChocolateyPackage sql-server-2017
+    Install-ChocolateyPackage nodejs-lts
+    Install-ChocolateyPackage python2 --params 'PrependPath=1'
+    Install-ChocolateyPackage vcpython27
+    Install-ChocolateyPackage python3 --params 'PrependPath=1'
+    Install-ChocolateyPackage jdk8
+    Install-ChocolateyPackage ruby.portable
 
     Log 'Installing ASPNet MVC 4'
-    Start-Process -FilePath "$networkInstallersPath\AspNetMVC4Setup.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+    Invoke-Executable -filePath "$networkInstallersPath\AspNetMVC4Setup.exe" -argumentList '/Passive', '/NoRestart'
 
     Log 'Installing Visual Studio 2013 build tools'
-    Start-Process -FilePath "$networkInstallersPath\BuildTools_Full_2013.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+    Invoke-Executable -filePath "$networkInstallersPath\BuildTools_Full_2013.exe" -argumentList '/Passive', '/NoRestart'
 
     Log 'Installing Visual Studio 2015 build tools'
-    Start-Process -FilePath "$networkInstallersPath\BuildTools_Full_2015.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+    Invoke-Executable "$networkInstallersPath\BuildTools_Full_2015.exe" -argumentList '/Passive', '/NoRestart'
 
     Log 'Installing Visual Studio 2017'
     $vs2017InstallerPath = "$networkInstallersPath\VS2017Layout\vs_Enterprise.exe"
-    Start-Process -FilePath $vs2017InstallerPath -Wait -NoNewWindow
+    Invoke-Executable -filePath $vs2017InstallerPath
 
     Log 'Installing Visual Studio 2013 Team Explorer'
-    Start-Process -FilePath "$networkInstallersPath\vs_teamExplorer.exe" -Wait -NoNewWindow -ArgumentList '/Passive', '/NoRestart'
+    Invoke-Executable -filePath "$networkInstallersPath\vs_teamExplorer.exe" -argumentList '/Passive', '/NoRestart'
 
     Log 'Installing TFS power tools 2013'
-    Start-Process -FilePath 'msiexec.exe' -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\Team Foundation Server 2013 Power Tools.msi`"", '/passive', '/norestart'
+    Invoke-MsiInstaller "`"$networkInstallersPath\Team Foundation Server 2013 Power Tools.msi`""
 
     Log 'Installing Wix 3.5'
-    Start-Process -FilePath 'msiexec.exe' -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\Wix35.msi`"", '/passive', '/norestart'
+    Invoke-MsiInstaller "`"$networkInstallersPath\Wix35.msi`""
 
     Log 'Installing VMware SDK'
-    Start-Process -FilePath "$networkInstallersPath\VMware-vix-1.11.2-591240.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
+    Invoke-Executable -filePath "$networkInstallersPath\VMware-vix-1.11.2-591240.exe" -argumentList '/s', '/v/qn'
 
     Log 'Installing VMware PowerCLI'
-    Start-Process -FilePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -Wait -NoNewWindow -ArgumentList '/s', '/v/qn'
+    Invoke-Executable -filePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -argumentList '/s', '/v/qn'
     
     Log 'Installing Citrix XenServer Tools'
     $citrixVmToolsSetupAtCDPath = 'D:\Setup.exe'
     if (Test-Path $citrixVmToolsSetupAtCDPath) {
-        Start-Process -FilePath $citrixVmToolsSetupAtCDPath -Wait -NoNewWindow -ArgumentList '/passive', '/norestart'
+        Invoke-Executable -filePath $citrixVmToolsSetupAtCDPath -argumentList '/passive', '/norestart'
     }
     else {
-        Start-Process -FilePath 'msiexec.exe' -Wait -NoNewWindow -ArgumentList '/i', "`"$networkInstallersPath\managementagentx64.msi`"", '/passive', '/norestart'
+        Invoke-MsiInstaller "`"$networkInstallersPath\managementagentx64.msi`""
     }
 
     Log 'Adding paths to the path environment variable'
@@ -142,7 +167,7 @@ env.TEAMCITY_JRE=$jrePath
 
     Log 'Running agent maintenance'
     $qsBuildExePath = Join-Path -Path $qsAgentSpyFolder -ChildPath 'QsBuild.exe'
-    Start-Process -FilePath $qsBuildExePath -Wait -NoNewWindow -ArgumentList '/RunnerType=AgentMaintenance', '/Verbosity=Max', '/IsTeamCity=false', '/SolutionRoot=NONE', '/BuildId=0', "/TriggeredBy=$UserName", '/SkipScreenResolution=true', '/SkipAntiVirus=true', '/SkipDisablingAgent=true'
+    Invoke-Executable -filePath $qsBuildExePath -argumentList '/RunnerType=AgentMaintenance', '/Verbosity=Max', '/IsTeamCity=false', '/SolutionRoot=NONE', '/BuildId=0', "/TriggeredBy=$UserName", '/SkipScreenResolution=true', '/SkipAntiVirus=true', '/SkipDisablingAgent=true'
 }
 catch {
     Log "An exception was raised: $_"
