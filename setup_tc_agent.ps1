@@ -65,7 +65,7 @@ try {
     Enable-PSRemoting
 
     Log 'Installing chocolatey pacakge manager'
-    Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    & "$networkInstallersPath\installChocolatey.ps1"
 
     Log 'Installing chocolatey packages'
     Install-ChocolateyPackage vcredist-all
