@@ -32,7 +32,7 @@ function Invoke-Executable([string]$filePath, [string[]]$argumentList = $null) {
     else {
         $process = Start-Process -FilePath $filePath -Wait -NoNewWindow -ArgumentList $argumentList -PassThru
     }
-    
+
     $exitCode = $process.ExitCode
     if ($exitCode -ne 0) {
         throw "Failed to install $filePath. Exit code: $exitCode"
@@ -78,7 +78,7 @@ try {
     Install-ChocolateyPackage googlechrome
     Install-ChocolateyPackage 7zip
     Install-ChocolateyPackage everything
-    Install-ChocolateyPackage sql-server-2017
+    Install-ChocolateyPackage sql-server-2017 --params="'/IsoPath:$networkInstallersPath\en_sql_server_2017_developer_x64_dvd_11296168.iso'"
     Install-ChocolateyPackage nodejs-lts
     Install-ChocolateyPackage python2 --params 'PrependPath=1'
     Install-ChocolateyPackage vcpython27
