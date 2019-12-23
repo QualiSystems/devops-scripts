@@ -2,6 +2,7 @@ param (
     [string]$UserName = 'buser',
     [string]$Password,
     [switch]$DebugMode,
+    [string]$CallingScript = 'init.ps1',
     [string]$SetupScriptsFolder = $null
 )
 
@@ -59,14 +60,13 @@ function Restart {
 }
 
 function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {    
-    $passwordInClearText = Convert-ToClearText $password
-    $setupScriptName = 'setup_tc_agent.ps1'    
+    $passwordInClearText = Convert-ToClearText $password    
     $arguments = "-UserName $userName -Password $passwordInClearText"
     if ($DebugMode) {
         $arguments = "$arguments -DebugMode"
     }
 
-    Set-ScriptToRunOnBoot "https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$setupScriptName" $arguments
+    Set-ScriptToRunOnBoot 'https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/setup_tc_agent.ps1' $arguments
 }
 
 function New-Credentials([string]$userName, [string]$password) {
@@ -125,7 +125,7 @@ if ($firstRun) {
         $arguments = "$arguments -DebugMode"
     }
 
-    Set-ScriptToRunOnBoot -scriptUrl 'https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/agent.ps1' -scriptArguments $arguments
+    Set-ScriptToRunOnBoot -scriptUrl "https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$CallingScript" -scriptArguments $arguments
 
     Restart
 }
