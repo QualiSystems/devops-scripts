@@ -74,7 +74,7 @@ function New-Credentials([string]$userName, [string]$password) {
     return New-Object System.Management.Automation.PSCredential -ArgumentList $userName, $secureStringPwd
 }
 
-if($null -eq $SetupScriptsFolder) {
+if ([String]::IsNullOrEmpty($SetupScriptsFolder)) {
     Write-Host 'SetupScriptsFolder is null !!!'
     $SetupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
     New-Item -ItemType Directory -Path $SetupScriptsFolder -Force
