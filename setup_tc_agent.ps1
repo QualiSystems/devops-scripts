@@ -78,7 +78,7 @@ try {
     Install-ChocolateyPackage googlechrome
     Install-ChocolateyPackage 7zip
     Install-ChocolateyPackage everything
-    Install-ChocolateyPackage sql-server-2017 --params="'/IsoPath:$networkInstallersPath\en_sql_server_2017_developer_x64_dvd_11296168.iso'"
+    Install-ChocolateyPackage sql-server-2017 --params="'/IsoPath:$networkInstallersPath\en_sql_server_2017_developer_x64_dvd_11296168.iso /TCPENABLED=1'"
     Install-ChocolateyPackage nodejs-lts
     Install-ChocolateyPackage python2 --params 'PrependPath=1'
     Install-ChocolateyPackage vcpython27
