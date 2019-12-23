@@ -75,8 +75,10 @@ function New-Credentials([string]$userName, [string]$password) {
 }
 
 if($null -eq $SetupScriptsFolder) {
+    Write-Host 'SetupScriptsFolder is null !!!'
     $SetupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
     New-Item -ItemType Directory -Path $SetupScriptsFolder -Force
+    Write-Host "SetupScriptsFolder created at $SetupScriptsFolder"
 }
 
 $domain = 'qualisystems'
