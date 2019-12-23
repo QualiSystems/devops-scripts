@@ -2,7 +2,7 @@ param (
     [string]$UserName = 'buser',
     [string]$Password,
     [switch]$DebugMode,
-    [string]$setupScriptsFolder = $null
+    [string]$SetupScriptsFolder = $null
 )
 
 $ErrorActionPreference = if ($DebugMode) { 'Inquire' } else { 'Stop' }
@@ -33,18 +33,18 @@ function Set-AutoLogon([string]$userName, [SecureString]$password, [string]$doma
     }
 }
 
-function New-ScriptFromUrl([string]$url, [string]$scriptNamePrefix) {
+function New-ScriptFromUrl([string]$url) {
     $guid = (New-Guid).ToString('n')
-    $setupScriptName = "$scriptNamePrefix_$guid.ps1"
+    $setupScriptName = "TCAgentSetup_$guid.ps1"
     $scriptContent = (New-Object System.Net.WebClient).DownloadString($url)
 
-    return New-Item -Force -Path $setupScriptsFolder -Name $setupScriptName -ItemType 'file' -Value $scriptContent
+    return New-Item -Force -Path $SetupScriptsFolder -Name $setupScriptName -ItemType 'file' -Value $scriptContent
 }
 
 function Set-ScriptToRunOnBoot([string]$scriptUrl, [string]$scriptArguments) {
     $registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
     $registryEntry = 'SetupTCAgent'
-    $setupScriptPath = New-ScriptFromUrl $scriptUrl 'TCAgentSetup'
+    $setupScriptPath = New-ScriptFromUrl $scriptUrl
     
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath $scriptArguments"
 
@@ -74,9 +74,9 @@ function New-Credentials([string]$userName, [string]$password) {
     return New-Object System.Management.Automation.PSCredential -ArgumentList $userName, $secureStringPwd
 }
 
-if($null -eq $setupScriptsFolder) {
-    $setupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
-    New-Item -ItemType Directory -Path $setupScriptsFolder -Force
+if($null -eq $SetupScriptsFolder) {
+    $SetupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
+    New-Item -ItemType Directory -Path $SetupScriptsFolder -Force
 }
 
 $domain = 'qualisystems'
