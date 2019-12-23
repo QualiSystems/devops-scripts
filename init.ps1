@@ -125,7 +125,7 @@ if ($firstRun) {
         $arguments = "$arguments -DebugMode"
     }
 
-    Set-ScriptToRunOnBoot -scriptUrl "https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$CallingScript" -scriptArguments $arguments
+    Set-ScriptToRunOnBoot -scriptUrl "https://raw.githubusercontent.com/QualiSystems/devops-scripts/test/$CallingScript" -scriptArguments $arguments
 
     Restart
 }
