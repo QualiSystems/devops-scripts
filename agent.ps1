@@ -6,6 +6,13 @@ param (
     [switch]$DebugMode
 )
 
+function Log([string]$message) {
+    Write-Host $message
+    if ($DebugMode) {
+        Read-Host 'Press enter to continue'
+    }
+}
+
 function New-InitScript {
     $guid = (New-Guid).ToString('n')
     $initScriptName = "InitMachine_$guid.ps1"
