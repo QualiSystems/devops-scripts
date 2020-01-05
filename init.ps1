@@ -59,7 +59,7 @@ function Restart {
     exit 0
 }
 
-function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {    
+function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {
     $passwordInClearText = Convert-ToClearText $password    
     $arguments = "-UserName $userName -Password $passwordInClearText"
     if ($DebugMode) {
@@ -136,3 +136,7 @@ Add-Computer -ComputerName 'localhost' -DomainName "$domain.local" -DomainCreden
 
 Log "Adding $UserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
+
+Log "Setting auto logon for $UserName"
+    Set-AutoLogon $UserName $domainUserCredentials.Password $domain
+    Set-SetupScriptToRunOnBoot $UserName $domainUserCredentials.Password
