@@ -75,7 +75,6 @@ function New-Credentials([string]$userName, [string]$password) {
 }
 
 if ([String]::IsNullOrEmpty($SetupScriptsFolder)) {
-    Write-Host 'SetupScriptsFolder is null !!!'
     $SetupScriptsFolder = Join-Path -Path $Env:ALLUSERSPROFILE -ChildPath 'TcAgentSetup'
     New-Item -ItemType Directory -Path $SetupScriptsFolder -Force
     Write-Host "SetupScriptsFolder created at $SetupScriptsFolder"
@@ -120,14 +119,14 @@ if ($firstRun) {
     $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
     Set-AutoLogon $Env:USERNAME $localUserCredentials.Password
     
-    $arguments = "-UserName $UserName -Password $domainUserTextPassword"        
+    $arguments = "-UserName $UserName -Password $domainUserTextPassword"
     if ($DebugMode) {
         $arguments = "$arguments -DebugMode"
     }
 
     Set-ScriptToRunOnBoot -scriptUrl "https://raw.githubusercontent.com/QualiSystems/devops-scripts/master/$CallingScript" -scriptArguments $arguments
 
-    Restart
+    return
 }
 
 $domainUserCredentials = New-Credentials -userName $fullDomainUserName -password $Password
