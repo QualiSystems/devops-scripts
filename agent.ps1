@@ -32,7 +32,7 @@ Start-Transcript -Path $logPath
 try {
     
     $initScriptItem = New-InitScript
-    & $initScriptItem.FullName -UserName $UserName -Password $Password -DebugMode:$DebugMode -CallingScript 'agent.ps1'
+    . $initScriptItem.FullName -UserName $UserName -Password $Password -DebugMode:$DebugMode -CallingScript 'agent.ps1'
 
     Log "Setting auto logon for $UserName"
     Set-AutoLogon $UserName $domainUserCredentials.Password $domain
