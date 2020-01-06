@@ -86,6 +86,9 @@ try {
     Install-ChocolateyPackage jdk8
     Install-ChocolateyPackage ruby.portable
 
+    # This will install dotfuscator with a license key for suite agents
+    # Install-ChocolateyPackage DotfuscatorPro --params="'/PrefFilePath:\\qsnas1\Storage\devops\unattended\Dotfuscator\dfusrprf.xml /DataFilePath:\\qsnas1\Storage\devops\unattended\Dotfuscator\dotfuscator.dat'"
+
     Log 'Installing ASPNet MVC 4'
     Invoke-Executable -filePath "$networkInstallersPath\AspNetMVC4Setup.exe" -argumentList '/Passive', '/NoRestart'
 
