@@ -6,7 +6,7 @@ param (
 
 $ErrorActionPreference = if ($DebugMode) { 'Inquire' } else { 'Stop' }
 
-function Log([string]$message) {    
+function Log([string]$message) {
     Write-Host $message
     if ($DebugMode) {
         Read-Host 'Press enter to continue...'
@@ -80,9 +80,9 @@ try {
     Install-ChocolateyPackage everything
     Install-ChocolateyPackage sql-server-2017 --params="'/IsoPath:$networkInstallersPath\en_sql_server_2017_developer_x64_dvd_11296168.iso /TCPENABLED=1'"
     Install-ChocolateyPackage nodejs-lts
-    Install-ChocolateyPackage python2 --params 'PrependPath=1'
+    Install-ChocolateyPackage python2 --params 'PrependPath=1' --forcex86
     Install-ChocolateyPackage vcpython27
-    Install-ChocolateyPackage python3 --params 'PrependPath=1'
+    Install-ChocolateyPackage python3 --params 'PrependPath=1' --forcex86
     Install-ChocolateyPackage jdk8
     Install-ChocolateyPackage ruby.portable
 
@@ -99,7 +99,7 @@ try {
     Invoke-Executable "$networkInstallersPath\BuildTools_Full_2015.exe" -argumentList '/Passive', '/NoRestart'
 
     Log 'Installing Visual Studio 2017'
-    $vs2017InstallerPath = "$networkInstallersPath\VS2017Layout\vs_Enterprise.exe"
+    $vs2017InstallerPath = "$networkInstallersPath\VS2017Layout\vs_enterprise.exe"
     Invoke-Executable -filePath $vs2017InstallerPath
 
     Log 'Installing Visual Studio 2013 Team Explorer'
@@ -107,6 +107,9 @@ try {
 
     Log 'Installing TFS power tools 2013'
     Invoke-MsiInstaller "`"$networkInstallersPath\Team Foundation Server 2013 Power Tools.msi`""
+
+    Log 'Installing Azure functions core tools'
+    Invoke-Executable -filePath 'npm.cmd' -argumentList 'install', '-g', 'azure-functions-core-tools'
 
     Log 'Installing Wix 3.5'
     Invoke-MsiInstaller "`"$networkInstallersPath\Wix35.msi`""
@@ -116,7 +119,7 @@ try {
 
     Log 'Installing VMware PowerCLI'
     Invoke-Executable -filePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -argumentList '/s', '/v/qn'
-    
+
     Log 'Installing Citrix XenServer Tools'
     $citrixVmToolsSetupAtCDPath = 'D:\Setup.exe'
     if (Test-Path $citrixVmToolsSetupAtCDPath) {
@@ -138,7 +141,7 @@ try {
     Log 'Activating Windows'
     $computer = $Env:ComputerName
     $agentInfoText = Get-Content "$networkInstallersPath\setup_info.json"
-    $agentInfo = $agentInfoText | ConvertFrom-Json 
+    $agentInfo = $agentInfoText | ConvertFrom-Json
     $activationKey = $agentInfo.ActivationKey
     $service = get-wmiObject -query 'select * from SoftwareLicensingService' -computername $computer
     $service.InstallProductKey($activationKey)
@@ -160,7 +163,7 @@ try {
     $javaHomePath = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
     $jrePath = "$javaHomePath\jre"
 
-    $agentConfiguration = 
+    $agentConfiguration =
     @"
 serverUrl=http\://tc
 name=$computer
