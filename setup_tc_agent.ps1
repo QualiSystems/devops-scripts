@@ -129,6 +129,19 @@ try {
         Invoke-MsiInstaller "`"$networkInstallersPath\managementagentx64.msi`""
     }
 
+    Log 'Configuring SQL Server maximum server memory'
+    $query = @"
+             sp_configure 'show advanced options', 1;
+             GO
+             RECONFIGURE;
+             GO
+             sp_configure 'max server memory', 4096;
+             GO
+             RECONFIGURE;
+             GO
+             "@
+    Invoke-Sqlcmd -ServerInstance '.' -Query $query
+
     Log 'Adding paths to the path environment variable'
     $pathRegisteryKey = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
     $currentPath = (Get-ItemProperty -Path $pathRegisteryKey -Name 'PATH').Path
