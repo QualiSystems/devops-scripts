@@ -85,6 +85,7 @@ try {
     Install-ChocolateyPackage python3 --params 'PrependPath=1' --forcex86
     Install-ChocolateyPackage jdk8
     Install-ChocolateyPackage ruby.portable
+    Install-ChocolateyPackage azurestorageemulator
 
     # This will install dotfuscator with a license key for suite agents
     # Install-ChocolateyPackage DotfuscatorPro --params="'/PrefFilePath:\\qsnas1\Storage\devops\unattended\Dotfuscator\dfusrprf.xml /DataFilePath:\\qsnas1\Storage\devops\unattended\Dotfuscator\dotfuscator.dat'"
