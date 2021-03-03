@@ -101,7 +101,7 @@ try {
 
     Log 'Installing Visual Studio 2017'
     $vs2017InstallerPath = "$networkInstallersPath\VS2017Layout\vs_enterprise.exe"
-    Invoke-Executable -filePath $vs2017InstallerPath
+    Invoke-Executable -filePath $vs2017InstallerPath -argumentList '--wait'
 
     Log 'Installing Visual Studio 2013 Team Explorer'
     Invoke-Executable -filePath "$networkInstallersPath\vs_teamExplorer.exe" -argumentList '/Passive', '/NoRestart'
