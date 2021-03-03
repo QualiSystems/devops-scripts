@@ -110,7 +110,7 @@ try {
     Invoke-MsiInstaller "`"$networkInstallersPath\Team Foundation Server 2013 Power Tools.msi`""
 
     Log 'Installing Azure functions core tools'
-    Invoke-Executable -filePath 'npm.cmd' -argumentList 'install', '-g', 'azure-functions-core-tools'
+    Invoke-Executable -filePath 'C:\Program Files\nodejs\npm.cmd' -argumentList 'install', '-g', 'azure-functions-core-tools'
 
     Log 'Installing Wix 3.5'
     Invoke-MsiInstaller "`"$networkInstallersPath\Wix35.msi`""
