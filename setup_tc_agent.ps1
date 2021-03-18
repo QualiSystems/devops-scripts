@@ -124,26 +124,27 @@ try {
     Log 'Installing VMware PowerCLI'
     Invoke-Executable -filePath "$networkInstallersPath\VMware-PowerCLI-5.5.0-1295336.exe" -argumentList '/s', '/v/qn'
 
-    Log 'Installing Citrix XenServer Tools'
-    $citrixVmToolsSetupAtCDPath = 'D:\Setup.exe'
-    if (Test-Path $citrixVmToolsSetupAtCDPath) {
-        Invoke-Executable -filePath $citrixVmToolsSetupAtCDPath -argumentList '/passive', '/norestart'
-    }
-    else {
-        Invoke-MsiInstaller "`"$networkInstallersPath\managementagentx64.msi`""
-    }
+    # Log 'Installing Citrix XenServer Tools'
+    # $citrixVmToolsSetupAtCDPath = 'D:\Setup.exe'
+    # if (Test-Path $citrixVmToolsSetupAtCDPath) {
+    #     Invoke-Executable -filePath $citrixVmToolsSetupAtCDPath -argumentList '/passive', '/norestart'
+    # }
+    # else {
+    #     Invoke-MsiInstaller "`"$networkInstallersPath\managementagentx64.msi`""
+    # }
 
     Log 'Configuring SQL Server maximum server memory'
-    $query = @"
-             sp_configure 'show advanced options', 1;
-             GO
-             RECONFIGURE;
-             GO
-             sp_configure 'max server memory', 4096;
-             GO
-             RECONFIGURE;
-             GO
-             "@
+    $query =
+    "sp_configure 'show advanced options', 1;
+    GO
+    RECONFIGURE;
+    GO
+    sp_configure 'max server memory', 4096;
+    GO
+    RECONFIGURE;
+    GO
+    "
+
     Invoke-Sqlcmd -ServerInstance '.' -Query $query
 
     Log 'Adding paths to the path environment variable'
