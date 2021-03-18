@@ -17,7 +17,7 @@ function Log([string]$message) {
 
 function Convert-ToClearText([securestring]$secureString) {
     $passwordBSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
-    return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($passwordBSTR)    
+    return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($passwordBSTR)
 }
 
 function Set-AutoLogon([string]$userName, [SecureString]$password, [string]$domainName) {
@@ -46,7 +46,7 @@ function Set-ScriptToRunOnBoot([string]$scriptUrl, [string]$scriptArguments) {
     $registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
     $registryEntry = 'SetupTCAgent'
     $setupScriptPath = New-ScriptFromUrl $scriptUrl
-    
+
     $command = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath $scriptArguments"
 
     Log "Setting script to run on boot: $command"
@@ -60,7 +60,7 @@ function Restart {
 }
 
 function Set-SetupScriptToRunOnBoot([string]$userName, [SecureString]$password) {
-    $passwordInClearText = Convert-ToClearText $password    
+    $passwordInClearText = Convert-ToClearText $password
     $arguments = "-UserName $userName -Password $passwordInClearText"
     if ($DebugMode) {
         $arguments = "$arguments -DebugMode"
@@ -95,8 +95,9 @@ if ($firstRun) {
     @('ComputerManagementDsc',
         'xNetworking',
         'xRemoteDesktopAdmin',
-        'DSCR_PowerPlan') | foreach {
-        if ((Get-Module $_ -list) -eq $null) { 
+        'DSCR_PowerPlan',
+        'SqlServer') | foreach {
+        if ((Get-Module $_ -list) -eq $null) {
             Log "Installing $_"; Install-Module $_ -Force -Confirm:$False
         }
     }
@@ -115,10 +116,10 @@ if ($firstRun) {
 
     Write-Host 'Renaming computer'
     Rename-Computer -NewName $ServerName
-        
+
     $domainUserTextPassword = Convert-ToClearText $domainUserCredentials.Password
     Set-AutoLogon $Env:USERNAME $localUserCredentials.Password
-    
+
     $arguments = "-UserName $UserName -Password $domainUserTextPassword"
     if ($DebugMode) {
         $arguments = "$arguments -DebugMode"
@@ -138,5 +139,5 @@ Log "Adding $UserName to administrators group"
 Invoke-DscResource -Name Group -ModuleName PSDesiredStateConfiguration -Property @{GroupName = 'Administrators'; ensure = 'present'; MembersToInclude = @($fullDomainUserName) } -Method Set
 
 Log "Setting auto logon for $UserName"
-    Set-AutoLogon $UserName $domainUserCredentials.Password $domain
-    Set-SetupScriptToRunOnBoot $UserName $domainUserCredentials.Password
+Set-AutoLogon $UserName $domainUserCredentials.Password $domain
+Set-SetupScriptToRunOnBoot $UserName $domainUserCredentials.Password
