@@ -86,7 +86,7 @@ try {
     Install-ChocolateyPackage jdk8
     Install-ChocolateyPackage ruby.portable
     Install-ChocolateyPackage azurestorageemulator
-    . "C:\ProgramData\chocolatey\bin\RefreshEnv.cmd"
+    & "C:\ProgramData\chocolatey\bin\RefreshEnv.cmd"
 
     # This will install dotfuscator with a license key for suite agents
     # Install-ChocolateyPackage DotfuscatorPro --params="'/PrefFilePath:\\qsnas1\Storage\devops\unattended\Dotfuscator\dfusrprf.xml /DataFilePath:\\qsnas1\Storage\devops\unattended\Dotfuscator\dotfuscator.dat'"
