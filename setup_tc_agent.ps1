@@ -86,6 +86,8 @@ try {
     Install-ChocolateyPackage jdk8
     Install-ChocolateyPackage ruby.portable
     Install-ChocolateyPackage azurestorageemulator
+    Install-ChocolateyPackage mongodb
+    Install-ChocolateyPackage erlang
 
     Log "Reloading path environment variable"
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
